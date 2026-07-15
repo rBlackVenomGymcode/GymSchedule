@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nello Gym Tracker</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: #111827;
+            --neon-green: #00ff66;
+            --neon-hover: #00cc52;
+            --text-main: #ffffff;
+            --text-gray: #9ca3af;
+            --border-neon: #1f2937;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 15px;
+            padding-bottom: 240px; /* Abbondante spazio per il timer fisso */
+        }
+
+        header {
+            text-align: center;
+            padding: 15px 0;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed var(--border-neon);
+        }
+
+        header h1 {
+            font-size: 24px;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+        }
+
+        /* Selettori Principali */
+        .selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-neon);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .select-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .label {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        select.week-dropdown {
+            flex: 1;
+            background-color: var(--bg-dark);
+            color: var(--neon-green);
+            border: 2px solid var(--border-neon);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* Pulsanti dei Giorni */
+        .day-tabs {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .day-btn {
+            flex: 1;
+            background-color: var(--bg-dark);
+            color: var(--text-gray);
+            border: 2px solid var(--border-neon);
+            padding: 12px 5px;
+            font-size: 14px;
+            font-weight: 800;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s ease;
+        }
+
+        .day-btn.active {
+            background-color: var(--neon-green);
+            color: #000000;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 12px rgba(0, 255, 102, 0.3);
+        }
+
+        /* Sezione Esercizi */
+        .day-content {
+            display: none;
+        }
+
+        .day-content.active {
+            display: block;
+        }
+
+        .exercise-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-neon);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+        }
+
+        .exercise-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .ex-name {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .ex-target {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--neon-green);
+            background-color: rgba(0, 255, 102, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        /* Controllo Peso */
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(9, 13, 22, 0.6);
+            border-radius: 12px;
+            padding: 10px 15px;
+        }
+
+        .row-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-gray);
+        }
+
+        .input-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-math {
+            background-color: #1f2937;
+            color: var(--text-main);
+            border: none;
+            width: 44px;
+            height: 44px; /* Grandi e facili da colpire */
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-math:active {
+            background-color: var(--neon-green);
+            color: #000000;
+        }
+
+        .weight-field {
+            width: 80px;
+            height: 44px;
+            background-color: var(--bg-dark);
+            color: var(--neon-green);
+            border: 2px solid var(--border-neon);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .weight-field:focus {
+            border-color: var(--neon-green);
+        }
+
+        /* TIMER CENTRATO FISSO */
+        .fixed-timer {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 30px);
+            max-width: 420px;
+            background-color: var(--card-bg);
+            border: 3px solid var(--neon-green);
+            border-radius: 24px;
+            padding: 16px;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timer-clock {
+            font-size: 46px; /* Enorme per massima leggibilità */
+            font-weight: 900;
+            color: var(--text-main);
+            font-family: monospace;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .timer-presets {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-preset {
+            background-color: rgba(0, 255, 102, 0.1);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-control {
+            flex: 1;
+            padding: 14px 10px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-control.start {
+            background-color: var(--neon-green);
+            color: #000000;
+        }
+
+        .btn-control.pause {
+            background-color: #f59e0b;
+            color: #000000;
+        }
+
+        .btn-control.reset {
+            background-color: #374151;
+            color: var(--text-main);
+        }
+
+        .btn-control.adjust {
+            max-width: 55px;
+            background-color: #1f2937;
+            color: var(--text-main);
+            font-size: 16px;
+        }
+
+        /* Tasto Reset Generale */
+        .btn-danger-zone {
+            width: 100%;
+            background-color: var(--danger);
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 25px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Gym Tracker Pro</h1>
+    </header>
+
+    <!-- Selettori Settimana e Giorno -->
+    <div class="selector-group">
+        <div class="select-wrapper">
+            <span class="label">BLOCCO:</span>
+            <select class="week-dropdown" id="week-selector">
+                <option value="w1">Settimana 1</option>
+                <option value="w2">Settimana 2</option>
+                <option value="w3">Settimana 3</option>
+                <option value="w4">Settimana 4</option>
+                <option value="w5">Settimana 5</option>
+                <option value="w6">Settimana 6</option>
+                <option value="w7">Settimana 7</option>
+                <option value="w8">Settimana 8</option>
+                <option value="w9">Settimana 9</option>
+                <option value="w10">Settimana 10</option>
+                <option value="w11">Settimana 11</option>
+                <option value="w12">Settimana 12</option>
+            </select>
+        </div>
+
+        <div class="day-tabs">
+            <button class="day-btn active" data-day="lun">LUN</button>
+            <button class="day-btn" data-day="mar">MAR</button>
+            <button class="day-btn" data-day="gio">GIO</button>
+            <button class="day-btn" data-day="ven">VEN</button>
+        </div>
+    </div>
+
+    <!-- PANNELLI DEGLI ALLENAMENTI -->
+    <div id="panel-lun" class="day-content active"></div>
+    <div id="panel-mar" class="day-content"></div>
+    <div id="panel-gio" class="day-content"></div>
+    <div id="panel-ven" class="day-content"></div>
+
+    <button class="btn-danger-zone" id="reset-database">Azzera Tutti i Dati</button>
+
+    <!-- TIMER FISSO CENTRATO IN BASSO -->
+    <div class="fixed-timer">
+        <div class="timer-header">
+            <div class="timer-clock" id="clock-display">01:30</div>
+            <div class="timer-presets">
+                <button class="btn-preset" data-time="30">30s</button>
+                <button class="btn-preset" data-time="60">1m</button>
+                <button class="btn-preset" data-time="120">2m</button>
+            </div>
+        </div>
+        <div class="timer-controls">
+            <button class="btn-control adjust" data-adj="-10">-10</button>
+            <button class="btn-control start" id="ctrl-start">START</button>
+            <button class="btn-control reset" id="ctrl-reset">RESET</button>
+            <button class="btn-control adjust" data-adj="10">+10</button>
+        </div>
+    </div>
+
+    <script>
+        // Database Scheda Allenamento
+        const workoutDatabase = {
+            lun: [
+                { id: "lun_panca", name: "Panca piana", target: "4x4-6" },
+                { id: "lun_croci", name: "Croci cavi", target: "4x8" },
+                { id: "lun_lento", name: "Lento Smith Machine", target: "4x6" },
+                { id: "lun_alzate", name: "Alzate laterali", target: "4x10" },
+                { id: "lun_african", name: "African curl", target: "4x4-6 (8-12)" },
+                { id: "lun_bayesian", name: "Bayesian curl", target: "4x8" },
+                { id: "lun_avambraccio", name: "Curl avambraccio", target: "3x15" }
+            ],
+            mar: [
+                { id: "mar_lat", name: "Lat machine", target: "4x4-6" },
+                { id: "mar_pulley", name: "Pulley", target: "4x8" },
+                { id: "mar_rumeno", name: "Stacco rumeno", target: "3x8" },
+                { id: "mar_ext", name: "Leg extension", target: "3x10" },
+                { id: "mar_post", name: "Deltoidi posteriori", target: "3x10" },
+                { id: "mar_pushdown", name: "Pushdown barra", target: "4x6" },
+                { id: "mar_french", name: "French Press cavi in piedi", target: "4x8" }
+            ],
+            gio: [
+                { id: "gio_squat", name: "Squat bilanciere", target: "4x6" },
+                { id: "gio_press", name: "Leg Press", target: "4x8" },
+                { id: "gio_thrust", name: "Hip Thrust", target: "3x10" },
+                { id: "gio_curl", name: "Leg curl", target: "4x10-12" },
+                { id: "gio_calf", name: "Calf rise seduto", target: "3x12" },
+                { id: "gio_pulldown", name: "Pull down cavi core", target: "3x15" },
+                { id: "gio_raise", name: "Leg raise parallele", target: "3x8" }
+            ],
+            ven: [
+                { id: "ven_inclinata", name: "Panca inclinata DB", target: "3x6" },
+                { id: "ven_peck", name: "Peck deck", target: "3x10" },
+                { id: "ven_lowrow", name: "Low Row singola", target: "3x6" },
+                { id: "ven_latsingola", name: "Lat singola concentrata", target: "3x8" },
+                { id: "ven_alzatecavi", name: "Alzate laterali ai cavi", target: "3x8" },
+                { id: "ven_curlcavi", name: "Curl ai cavi", target: "3x10" },
+                { id: "ven_pushdown", name: "Pushdown singolo", target: "3x8" }
+            ]
+        };
+
+        let activeWeek = "w1";
+        let activeDay = "lun";
+
+        // Genera la scheda nel DOM
+        function renderExercises() {
+            for (const [day, exercises] of Object.entries(workoutDatabase)) {
+                const container = document.getElementById(`panel-${day}`);
+                let html = '';
+
+                exercises.forEach(ex => {
+                    const storageKey = `${ex.id}_${activeWeek}`;
+                    const inputId = `val_${storageKey}`;
+                    
+                    html += `
+                        <div class="exercise-card">
+                            <div class="exercise-info">
+                                <span class="ex-name">${ex.name}</span>
+                                <span class="ex-target">${ex.target}</span>
+                            </div>
+                            <div class="input-row">
+                                <span class="row-title">CARICO (KG)</span>
+                                <div class="input-actions">
+                                    <button class="btn-math" onclick="mathWeight('${inputId}', -2.5)">-</button>
+                                    <input type="number" 
+                                           pattern="[0-9]*" 
+                                           inputmode="decimal" 
+                                           id="${inputId}" 
+                                           class="weight-field" 
+                                           data-key="${storageKey}" 
+                                           placeholder="--" 
+                                           oninput="handleInput(this)">
+                                    <button class="btn-math" onclick="mathWeight('${inputId}', 2.5)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+        }
+
+        // Funzione per i calcoli veloci (+ e -)
+        window.mathWeight = function(inputId, step) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            let currentVal = parseFloat(input.value) || 0;
+            currentVal = Math.max(0, currentVal + step);
+            input.value = currentVal;
+            localStorage.setItem(input.getAttribute('data-key'), currentVal);
+        };
+
+        // Salvataggio su scrittura manuale
+        window.handleInput = function(element) {
+            const key = element.getAttribute('data-key');
+            const val = element.value;
+            if (val !== "") {
+                localStorage.setItem(key, val);
+            } else {
+                localStorage.removeItem(key);
+            }
+        };
+
+        // Caricamento dei dati salvati
+        function loadSavedWeights() {
+            document.querySelectorAll('.weight-field').forEach(input => {
+                const key = input.getAttribute('data-key');
+                const saved = localStorage.getItem(key);
+                if (saved) {
+                    input.value = saved;
+                }
+            });
+        }
+
+        // Gestore del cambio Giorno
+        document.querySelectorAll('.day-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.day-content').forEach(p => p.classList.remove('active'));
+
+                this.classList.add('active');
+                activeDay = this.getAttribute('data-day');
+                document.getElementById(`panel-${activeDay}`).classList.add('active');
+            });
+        });
+
+        // Gestore del cambio Settimana
+        document.getElementById('week-selector').addEventListener('change', function() {
+            activeWeek = this.value;
+            renderExercises();
+            loadSavedWeights();
+        });
+
+        // Reset Generale
+        document.getElementById('reset-database').addEventListener('click', function() {
+            if (confirm("Attenzione! Questo cancellerà TUTTI i carichi registrati per tutte e 12 le settimane. Procedere?")) {
+                localStorage.clear();
+                renderExercises();
+                loadSavedWeights();
+                alert("Database svuotato!");
+            }
+        });
+
+        // ==========================================
+        // CRONOMETRO / TIMER INTEGRATO
+        // ==========================================
+        let timerId = null;
+        let defaultTime = 90;
+        let timeRemaining = 90;
+        let timerRunning = false;
+
+        const clockDisplay = document.getElementById('clock-display');
+        const startBtn = document.getElementById('ctrl-start');
+
+        function drawClock() {
+            const mins = Math.floor(timeRemaining / 60);
+            const secs = timeRemaining % 60;
+            clockDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function setClockTime(seconds) {
+            clearInterval(timerId);
+            timerRunning = false;
+            defaultTime = seconds;
+            timeRemaining = seconds;
+            drawClock();
+            startBtn.innerText = "START";
+            startBtn.className = "btn-control start";
+        }
+
+        // Click sui Preset di Tempo
+        document.querySelectorAll('.btn-preset').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const time = parseInt(this.getAttribute('data-time'));
+                setClockTime(time);
+            });
+        });
+
+        // Click sui pulsanti di aggiustamento (+10 / -10)
+        document.querySelectorAll('[data-adj]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const val = parseInt(this.getAttribute('data-adj'));
+                timeRemaining = Math.max(0, timeRemaining + val);
+                drawClock();
+            });
+        });
+
+        // Start e Pause
+        startBtn.addEventListener('click', function() {
+            if (timerRunning) {
+                clearInterval(timerId);
+                timerRunning = false;
+                this.innerText = "START";
+                this.className = "btn-control start";
+            } else {
+                if (timeRemaining <= 0) return;
+                timerRunning = true;
+                this.innerText = "PAUSE";
+                this.className = "btn-control pause";
+
+                timerId = setInterval(() => {
+                    timeRemaining-
