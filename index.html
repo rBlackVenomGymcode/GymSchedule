@@ -1051,4 +1051,60 @@
                 this.className = "btn-control pause";
 
                 timerId = setInterval(() => {
-                    timeRemaining-
+                    timeRemaining-;
+                    drawClock();
+
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerId);
+                        timerRunning = false;
+                        startBtn.innerText = "START";
+                        startBtn.className = "btn-control start";
+                        triggerBeep();
+                        alert("Tempo scaduto! Sotto con la prossima serie!");
+                    }
+                }, 1000);
+            }
+        });
+
+        // Reset del timer
+        document.getElementById('ctrl-reset').addEventListener('click', function() {
+            clearInterval(timerId);
+            timerRunning = false;
+            timeRemaining = defaultTime;
+            drawClock();
+            startBtn.innerText = "START";
+            startBtn.className = "btn-control start";
+        });
+
+        // Generatore di suono Beep (Nativo)
+        function triggerBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.0);
+                
+                osc.start();
+                osc.stop(ctx.currentTime + 1.0);
+            } catch (e) {
+                console.log("Audio non consentito dal browser");
+            }
+        }
+
+        // Avvio iniziale dell'applicazione
+        window.addEventListener('DOMContentLoaded', () => {
+            renderExercises();
+            loadSavedWeights();
+            drawClock();
+        });
+    </script>
+</body>
+</html>
+
